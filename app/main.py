@@ -1,30 +1,58 @@
+from gmail_reader import fetch_latest_emails
+from gmail_sender import send_email
 from intent_classifier import classify_intent
 from reply_generator import generate_reply
 from workflow_router import route_workflow
 
-# Mock incoming emails
-EMAILS = [
-    "Hi, I am applying for a job. Please find my resume attached.",
-    "Hello, I need help with an issue on your platform.",
-    "Congratulations! You won money. Click here."
-]
+CONFIDENCE_THRESHOLD = 0.8
+
 
 def run_agent():
-    for email in EMAILS:
-        print("\n📩 New Email:", email)
+    emails = fetch_latest_emails()
 
-        result = classify_intent(email)
+    if not emails:
+        print("📭 No emails found.")
+        return
+
+    for mail in emails:
+        email_body = mail["body"]
+        sender = mail["from"]
+        subject = mail["subject"]
+
+        print("\n📩 New Email")
+        print("From:", sender)
+        print("Subject:", subject)
+
+        # ---- AI Classification ----
+        result = classify_intent(email_body)
         intent = result["intent"]
+        confidence = result["confidence"]
+        source = result.get("source", "unknown")
 
-        print("🧠 Classified Intent:", intent)
+        print(f"🧠 Intent: {intent} | Confidence: {confidence} | Source: {source}")
 
-        reply = generate_reply(intent, email)
-        action = route_workflow(email, intent)
+        # ---- Spam Rule ----
+        if intent == "spam":
+            print("🚫 Spam detected — no reply sent")
+            route_workflow(email_body, "spam")
+            continue
 
-        if reply:
-            print("✉️ Drafted Reply:", reply)
+        # ---- Generate Reply ----
+        reply = generate_reply(intent, email_body)
 
-        print("⚙️ Action:", action)
+        # ---- Confidence Gate ----
+        if confidence >= CONFIDENCE_THRESHOLD:
+            send_email(
+                to_email=sender,
+                subject=f"Re: {subject}",
+                body=reply
+            )
+            print("✅ Reply auto-sent")
+            route_workflow(email_body, intent)
+        else:
+            print("⏸️ Low confidence — reply held for manual review")
+            route_workflow(email_body, "held_for_review")
+
 
 if __name__ == "__main__":
     run_agent()
