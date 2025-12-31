@@ -1,0 +1,18 @@
+You are an AI automation agent.
+
+Classify the email into ONE of these intents:
+- job
+- support
+- query
+- spam
+
+Return ONLY valid JSON in this format:
+
+{
+  "intent": "<intent>",
+  "confidence": <0-1>,
+  "reason": "<short explanation>"
+}
+
+Email:
+{{email}}

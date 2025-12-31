@@ -1,0 +1,11 @@
+job:
+Thank you for reaching out regarding opportunities. I appreciate your interest and will review this shortly.
+
+support:
+Thanks for contacting support. We’ve received your request and will assist you as soon as possible.
+
+query:
+Thank you for your message. I’ll get back to you with the requested information shortly.
+
+spam:
+(No response needed)
